@@ -8,7 +8,7 @@ from apps.customers.models import Customers
 class AutoShows(AbstractBaseModel):
     id = models.UUIDField(primary_key=True)
     title = models.CharField(max_length=100)
-    location = models.TextField()
+    location = models.CharField(max_length=100)
     balance = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
     car_preferences = models.JSONField(null=True, default=dict)
 
@@ -22,7 +22,7 @@ class AutoShowsCars(models.Model):
 
 class AutoShowsPromotions(AbstractBaseModel):
     id = models.UUIDField(primary_key=True)
-    title = models.TextField()
+    title = models.CharField(max_length=100)
     start_at = models.DateTimeField()
     end_at = models.DateTimeField()
     percent = models.IntegerField(validators=[MinValueValidator(0)])

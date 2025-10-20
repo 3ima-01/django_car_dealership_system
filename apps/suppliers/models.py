@@ -7,10 +7,10 @@ from apps.common.models import AbstractBaseModel, Cars
 # Create your models here.
 class Suppliers(AbstractBaseModel):
     id = models.UUIDField(primary_key=True)
-    title = models.TextField()
+    title = models.CharField(max_length=100)
     year = models.IntegerField()
-    country = models.TextField()
-    city = models.TextField()
+    country = models.CharField(max_length=100)
+    city = models.CharField(max_length=100)
 
 
 class SuppliersCars(models.Model):
@@ -22,7 +22,7 @@ class SuppliersCars(models.Model):
 
 class SuppliersPromotions(AbstractBaseModel):
     id = models.UUIDField(primary_key=True)
-    title = models.TextField()
+    title = models.CharField(max_length=100)
     start_at = models.DateTimeField()
     end_at = models.DateTimeField()
     percent = models.IntegerField()
