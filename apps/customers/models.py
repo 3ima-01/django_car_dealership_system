@@ -7,7 +7,7 @@ from apps.common.models import AbstractBaseModel
 class Customers(AbstractBaseModel):
     id = models.UUIDField(primary_key=True)
     email = models.EmailField()
-    password = models.TextField()
+    password = models.CharField(max_length=100)
 
 
 class Profiles(models.Model):
