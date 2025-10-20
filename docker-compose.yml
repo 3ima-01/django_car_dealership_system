@@ -1,0 +1,36 @@
+services:
+
+  car_dealership_system:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: car_dealership_system
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      database:
+          condition: service_healthy
+  database:
+    image: postgres:17-alpine
+    container_name: database
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:${DB_PORT}"
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
