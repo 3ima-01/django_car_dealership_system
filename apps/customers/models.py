@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -5,7 +7,7 @@ from apps.common.models import AbstractBaseModel
 
 
 class Customers(AbstractBaseModel):
-    id = models.UUIDField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     email = models.EmailField()
     password = models.CharField(max_length=100)
 
@@ -19,7 +21,7 @@ class Profiles(models.Model):
 
 
 class Offers(models.Model):
-    id = models.UUIDField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     customer_id = models.ForeignKey(Customers, on_delete=models.CASCADE)
     model = models.CharField(max_length=50)
     max_price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])

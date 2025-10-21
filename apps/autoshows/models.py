@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -6,7 +8,7 @@ from apps.customers.models import Customers
 
 
 class AutoShows(AbstractBaseModel):
-    id = models.UUIDField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     title = models.CharField(max_length=100)
     location = models.CharField(max_length=100)
     balance = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
@@ -21,7 +23,7 @@ class AutoShowsCars(models.Model):
 
 
 class AutoShowsPromotions(AbstractBaseModel):
-    id = models.UUIDField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     title = models.CharField(max_length=100)
     start_at = models.DateTimeField()
     end_at = models.DateTimeField()
@@ -31,7 +33,7 @@ class AutoShowsPromotions(AbstractBaseModel):
 
 
 class AutoShowsSales(models.Model):
-    id = models.UUIDField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     autoshow_id = models.ForeignKey(AutoShows, on_delete=models.CASCADE)
     customer_id = models.ForeignKey(Customers, on_delete=models.CASCADE)
     car_id = models.ForeignKey(AutoShowsCars, on_delete=models.CASCADE)
