@@ -11,7 +11,7 @@ class AutoShows(AbstractBaseModel):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     title = models.CharField(max_length=128)
     location = models.CharField(max_length=128)
-    balance = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+    balance = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)], default=0)
     car_preferences = models.JSONField(null=True, default=dict)
 
 
