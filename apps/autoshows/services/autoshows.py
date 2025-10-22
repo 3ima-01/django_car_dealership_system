@@ -16,8 +16,6 @@ class AutoShowsService:
 
     def get_autoshow_by_id(self, auto_show_id: UUID) -> AutoShows | None:
         autoshow = self.repository.get_by_id(auto_show_id)
-        if autoshow is None:
-            return None
         return autoshow
 
     def get_autoshow_by_id_or_404(self, auto_show_id: UUID) -> AutoShows:
