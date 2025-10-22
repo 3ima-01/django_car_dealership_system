@@ -3,7 +3,8 @@ from uuid import uuid4
 from django.db import models
 
 from apps.autoshows.models import AutoShowsCars
-from apps.common.models import AbstractBaseModel, Cars
+from apps.cars.models import Cars
+from apps.common.models import AbstractBaseModel
 
 
 # Create your models here.

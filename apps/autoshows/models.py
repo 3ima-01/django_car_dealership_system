@@ -3,7 +3,8 @@ from uuid import uuid4
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from apps.common.models import AbstractBaseModel, Cars
+from apps.cars.models import Cars
+from apps.common.models import AbstractBaseModel
 from apps.customers.models import Customers
 
 
