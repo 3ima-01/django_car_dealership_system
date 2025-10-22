@@ -22,6 +22,9 @@ class AutoShowsStock(models.Model):
     quantity = models.IntegerField(validators=[MinValueValidator(0)])
     price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
 
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["car_id", "autoshow_id"], name="unique_car_autoshow")]
+
 
 class AutoShowsPromotions(AbstractBaseModel):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
