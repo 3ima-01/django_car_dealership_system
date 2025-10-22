@@ -6,6 +6,8 @@ from apps.common.models import AbstractBaseModel
 
 
 class Cars(AbstractBaseModel):
+    ENGINE_TYPES = ["gasoline", "diesel", "electric"]
+
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     year = models.IntegerField()
     brand = models.CharField(max_length=64)
