@@ -6,4 +6,5 @@ urlpatterns = [
     path("api/v1/", include("rest_framework.urls", namespace="rest_framework")),
     path("api/v1/", include("apps.cars.api.urls")),
     path("api/v1/", include("apps.autoshows.api.urls")),
+    path("api/v1/", include("apps.suppliers.api.urls")),
 ]
