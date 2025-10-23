@@ -7,7 +7,6 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.autoshows.api.exceptions import AutoShowsValidationError
 from apps.autoshows.api.serializers.autoshows import (
     AutoShowsCreateSerializer,
     AutoShowsPublicSerializer,
@@ -38,18 +37,16 @@ class AutoShowsAPIView(APIView):
 
     def post(self, request: Request) -> Response:
         serializer = AutoShowsCreateSerializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             autoshow = self.service.create_autoshow(serializer.validated_data)
             response_serializer = AutoShowsPublicSerializer(autoshow)
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-        raise AutoShowsValidationError
 
     def patch(self, request: Request, id: UUID) -> Response:
         serializer = AutoShowsUpdateSerializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             updated = self.service.update_autoshow(id, serializer.validated_data)
             return Response(status=status.HTTP_204_NO_CONTENT)
-        raise AutoShowsValidationError
 
     def delete(self, request: Request, id: UUID) -> Response:
         deleted = self.service.soft_delete_autoshow(id)
