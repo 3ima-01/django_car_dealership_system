@@ -7,7 +7,6 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.suppliers.api.exceptions import SuppliersValidationError
 from apps.suppliers.api.serializers.suppliers_stock import (
     SuppliersStockCreateSerializer,
     SuppliersStockPublicSerializer,
@@ -30,18 +29,16 @@ class SuppliersStockAPIView(APIView):
 
     def post(self, request: Request, id: UUID) -> Response:
         serializer = SuppliersStockCreateSerializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             supplier_stock = self.service.add_car_to_supplier(serializer.validated_data)
             response_serializer = SuppliersStockPublicSerializer(supplier_stock)
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-        raise SuppliersValidationError
 
     def patch(self, request: Request, id: UUID) -> Response:
         serializer = SuppliersStockUpdateSerializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             updated = self.service.update_supplier_car(id, serializer.validated_data)
             return Response(status=status.HTTP_204_NO_CONTENT)
-        raise SuppliersValidationError
 
     def delete(self, request: Request, id: UUID) -> Response:
         deleted = self.service.delete_supplier_car(id)
