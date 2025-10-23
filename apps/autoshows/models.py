@@ -16,7 +16,8 @@ class AutoShows(AbstractBaseModel):
     car_preferences = models.JSONField(null=True, default=dict)
 
 
-class AutoShowsStock(models.Model):
+class AutoShowsStock(AbstractBaseModel):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     car_id = models.ForeignKey(Cars, on_delete=models.CASCADE)
     autoshow_id = models.ForeignKey(AutoShows, on_delete=models.CASCADE)
     quantity = models.IntegerField(validators=[MinValueValidator(0)])
