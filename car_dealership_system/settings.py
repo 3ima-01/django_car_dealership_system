@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [*os.getenv("ALLOWED_HOSTS", "").split(",")]
 
 DJANGO_APPS = [
     "django.contrib.admin",
@@ -21,8 +21,10 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
-    "rest_framework",
+    "debug_toolbar",
     "drf_yasg",
+    "django_filters",
+    "rest_framework",
 ]
 
 LOCAL_APPS = [
@@ -44,6 +46,14 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+MIDDLEWARE = [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+] + MIDDLEWARE
+
+INTERNAL_IPS = [
+    "127.0.0.1",
 ]
 
 REST_FRAMEWORK = {
