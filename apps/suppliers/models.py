@@ -36,7 +36,7 @@ class SuppliersPromotions(AbstractBaseModel):
     autoshow_id = models.UUIDField(null=True)
 
 
-class SuppliersSales:
+class SuppliersSales(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     supplier_id = models.ForeignKey(Suppliers, on_delete=models.CASCADE)
     autoshow_id = models.ForeignKey(AutoShows, on_delete=models.CASCADE)

@@ -32,10 +32,10 @@ class AutoShowsListView(APIView):
     @swagger_auto_schema(request_body=AutoShowsCreateSerializer, responses={201: AutoShowsPublicSerializer})
     def post(self, request: Request) -> Response:
         serializer = AutoShowsCreateSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            autoshow = self.service.create_autoshow(serializer.validated_data)
-            response_serializer = AutoShowsPublicSerializer(autoshow)
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        serializer.is_valid(raise_exception=True)
+        autoshow = self.service.create_autoshow(serializer.validated_data)
+        response_serializer = AutoShowsPublicSerializer(autoshow)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
 class AutoShowsDetailView(APIView):
@@ -54,11 +54,11 @@ class AutoShowsDetailView(APIView):
     @swagger_auto_schema(request_body=AutoShowsUpdateSerializer, responses={204: "No Content"})
     def patch(self, request: Request, id: UUID) -> Response:
         serializer = AutoShowsUpdateSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            updated = self.service.update_autoshow(id, serializer.validated_data)
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer.is_valid(raise_exception=True)
+        self.service.update_autoshow(id, serializer.validated_data)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @swagger_auto_schema(responses={204: "No Content"})
     def delete(self, request: Request, id: UUID) -> Response:
-        deleted = self.service.soft_delete_autoshow(id)
+        self.service.soft_delete_autoshow(id)
         return Response(status=status.HTTP_204_NO_CONTENT)

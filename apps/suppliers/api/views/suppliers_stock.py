@@ -36,21 +36,21 @@ class SuppliersStockAPIView(APIView):
     )
     def post(self, request: Request, id: UUID) -> Response:
         serializer = SuppliersStockCreateSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            supplier_stock = self.service.add_car_to_supplier(serializer.validated_data)
-            response_serializer = SuppliersStockPublicSerializer(supplier_stock)
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        serializer.is_valid(raise_exception=True)
+        supplier_stock = self.service.add_car_to_supplier(serializer.validated_data)
+        response_serializer = SuppliersStockPublicSerializer(supplier_stock)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(
         request_body=SuppliersStockUpdateSerializer, responses={204: "No Content"}, tags=["suppliers_stock"]
     )
     def patch(self, request: Request, id: UUID) -> Response:
         serializer = SuppliersStockUpdateSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            updated = self.service.update_supplier_car(id, serializer.validated_data)
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer.is_valid(raise_exception=True)
+        self.service.update_supplier_car(id, serializer.validated_data)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @swagger_auto_schema(responses={204: "No Content"}, tags=["suppliers_stock"])
     def delete(self, request: Request, id: UUID) -> Response:
-        deleted = self.service.delete_supplier_car(id)
+        self.service.delete_supplier_car(id)
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -8,7 +8,6 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.cars.api.exceptions import CarsValidationError
 from apps.cars.api.serializers.cars import (
     CarsCreateSerializer,
     CarsPublicSerializer,
@@ -25,7 +24,7 @@ class CarsListView(APIView):
         self.service = CarsService()
 
     @swagger_auto_schema(responses={200: CarsPublicSerializer(many=True)})
-    def get(self, request: Request, id: UUID = None) -> Response:
+    def get(self, request: Request) -> Response:
         cars = self.service.get_all_cars()
         serializer = CarsPublicSerializer(cars, many=True)
         return Response(serializer.data)
@@ -33,11 +32,10 @@ class CarsListView(APIView):
     @swagger_auto_schema(request_body=CarsCreateSerializer, responses={201: CarsPublicSerializer})
     def post(self, request: Request) -> Response:
         serializer = CarsCreateSerializer(data=request.data)
-        if serializer.is_valid():
-            car = self.service.create_car(serializer.validated_data)
-            response_serializer = CarsPublicSerializer(car)
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-        raise CarsValidationError
+        serializer.is_valid(raise_exception=True)
+        car = self.service.create_car(serializer.validated_data)
+        response_serializer = CarsPublicSerializer(car)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
 class CarsDetailView(APIView):
@@ -56,12 +54,11 @@ class CarsDetailView(APIView):
     @swagger_auto_schema(request_body=CarsUpdateSerializer, responses={204: "No Content"})
     def patch(self, request: Request, id: UUID) -> Response:
         serializer = CarsUpdateSerializer(data=request.data)
-        if serializer.is_valid():
-            updated = self.service.update_car(id, serializer.validated_data)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        raise CarsValidationError
+        serializer.is_valid(raise_exception=True)
+        self.service.update_car(id, serializer.validated_data)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @swagger_auto_schema(responses={204: "No Content"})
     def delete(self, request: Request, id: UUID) -> Response:
-        deleted = self.service.soft_delete_car(id)
+        self.service.soft_delete_car(id)
         return Response(status=status.HTTP_204_NO_CONTENT)

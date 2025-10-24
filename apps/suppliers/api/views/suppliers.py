@@ -32,10 +32,10 @@ class SuppliersListView(APIView):
     @swagger_auto_schema(request_body=SuppliersCreateSerializer, responses={201: SuppliersPublicSerializer})
     def post(self, request: Request) -> Response:
         serializer = SuppliersCreateSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            autoshow = self.service.create_supplier(serializer.validated_data)
-            response_serializer = SuppliersPublicSerializer(autoshow)
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        serializer.is_valid(raise_exception=True)
+        autoshow = self.service.create_supplier(serializer.validated_data)
+        response_serializer = SuppliersPublicSerializer(autoshow)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
 class SuppliersDetailView(APIView):
@@ -54,11 +54,11 @@ class SuppliersDetailView(APIView):
     @swagger_auto_schema(request_body=SuppliersUpdateSerializer, responses={204: "No Content"})
     def patch(self, request: Request, id: UUID) -> Response:
         serializer = SuppliersUpdateSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            updated = self.service.update_supplier(id, serializer.validated_data)
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer.is_valid(raise_exception=True)
+        self.service.update_supplier(id, serializer.validated_data)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @swagger_auto_schema(responses={204: "No Content"})
     def delete(self, request: Request, id: UUID) -> Response:
-        deleted = self.service.soft_delete_supplier(id)
+        self.service.soft_delete_supplier(id)
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -1,6 +1,7 @@
 from typing import Any
 from uuid import UUID
 
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -19,6 +20,7 @@ class AutoShowsStockAPIView(APIView):
         super().__init__(**kwargs)
         self.service = AutoShowsStockService()
 
+    @swagger_auto_schema(responses={200: AutoShowsStockPublicSerializer(many=True)}, tags=["autoshows_stock"])
     def get(self, request: Request, id: UUID) -> Response:
         stock = self.service.get_autoshow_stock(id)
         serializer = AutoShowsStockPublicSerializer(stock, many=True)

@@ -1,28 +1,28 @@
 from typing import Any, Generic, TypeVar
 from uuid import UUID
 
-from django.db.models import Model, QuerySet
+from django.db import models
 from django.shortcuts import get_object_or_404
 
-ModelType = TypeVar("ModelType", bound=Model)
+ModelType = TypeVar("ModelType", bound=models.Model)
 
 
 class BaseRepository(Generic[ModelType]):
     model: type[ModelType]
 
-    def get_all(self) -> QuerySet[ModelType]:
+    def get_all(self) -> models.QuerySet[ModelType]:
         """Get all active data (is_active=True)"""
-        return self.model.objects.filter(is_active=True)
+        return self.model._default_manager.filter(is_active=True)
 
-    def get_all_with_inactive(self) -> QuerySet[ModelType]:
+    def get_all_with_inactive(self) -> models.QuerySet[ModelType]:
         """Get all data including inactive ones"""
-        return self.model.objects.all()
+        return self.model._default_manager.all()
 
     def get_by_id(self, id: UUID) -> ModelType | None:
         """Get data by ID, return None If doesn`t exist"""
         try:
-            return self.model.objects.get(pk=id, is_active=True)
-        except self.model.DoesNotExist:
+            return self.model._default_manager.get(pk=id, is_active=True)
+        except self.model.DoesNotExist:  # type: ignore[attr-defined]
             return None
 
     def get_by_id_or_404(self, id: UUID) -> ModelType:
@@ -31,12 +31,12 @@ class BaseRepository(Generic[ModelType]):
 
     def create(self, data: dict[str, Any]):
         """Create new data"""
-        return self.model.objects.create(**data)
+        return self.model._default_manager.create(**data)
 
     def update(self, id: UUID, data: dict[str, Any]):
         """Update data by id"""
-        return self.model.objects.filter(pk=id, is_active=True).update(**data)
+        return self.model._default_manager.filter(pk=id, is_active=True).update(**data)
 
     def soft_delete(self, id: UUID):
         """Soft delete: set is_active=False"""
-        return self.model.objects.filter(pk=id, is_active=True).update(is_active=False)
+        return self.model._default_manager.filter(pk=id, is_active=True).update(is_active=False)
