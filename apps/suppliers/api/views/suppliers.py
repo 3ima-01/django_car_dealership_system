@@ -3,10 +3,16 @@ from uuid import UUID
 
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.mixins import (
+    CreateModelMixin,
+    DestroyModelMixin,
+    ListModelMixin,
+    RetrieveModelMixin,
+)
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet
 
 from apps.suppliers.api.serializers.suppliers import (
     SuppliersCreateSerializer,
@@ -16,49 +22,70 @@ from apps.suppliers.api.serializers.suppliers import (
 from apps.suppliers.services.suppliers import SuppliersService
 
 
-class SuppliersListView(APIView):
+class SuppliersViewSet(
+    ListModelMixin,
+    CreateModelMixin,
+    RetrieveModelMixin,
+    DestroyModelMixin,
+    GenericViewSet,
+):
     permission_classes = [AllowAny]
+    serializer_class = SuppliersPublicSerializer
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.service = SuppliersService()
 
-    @swagger_auto_schema(responses={200: SuppliersPublicSerializer(many=True)})
-    def get(self, request: Request) -> Response:
+    def get_queryset(self):
+        from apps.suppliers.models import Suppliers
+
+        return Suppliers.objects.none()
+
+    @swagger_auto_schema(
+        tags=["Suppliers"],
+        responses={200: SuppliersPublicSerializer(many=True)},
+    )
+    def list(self, request: Request) -> Response:
         suppliers = self.service.get_all_suppliers()
-        serializer = SuppliersPublicSerializer(suppliers, many=True)
+        serializer = self.get_serializer(suppliers, many=True)
         return Response(serializer.data)
 
-    @swagger_auto_schema(request_body=SuppliersCreateSerializer, responses={201: SuppliersPublicSerializer})
-    def post(self, request: Request) -> Response:
+    @swagger_auto_schema(
+        tags=["Suppliers"],
+        request_body=SuppliersCreateSerializer,
+        responses={201: SuppliersPublicSerializer},
+    )
+    def create(self, request: Request) -> Response:
         serializer = SuppliersCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        autoshow = self.service.create_supplier(serializer.validated_data)
-        response_serializer = SuppliersPublicSerializer(autoshow)
+        supplier = self.service.create_supplier(serializer.validated_data)
+        response_serializer = SuppliersPublicSerializer(supplier)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
-
-class SuppliersDetailView(APIView):
-    permission_classes = [AllowAny]
-
-    def __init__(self, **kwargs: Any) -> None:
-        super().__init__(**kwargs)
-        self.service = SuppliersService()
-
-    @swagger_auto_schema(responses={200: SuppliersPublicSerializer})
-    def get(self, request: Request, id: UUID) -> Response:
-        autoshow = self.service.get_supplier_by_id_or_404(id)
-        serializer = SuppliersPublicSerializer(autoshow)
+    @swagger_auto_schema(
+        tags=["Suppliers"],
+        responses={200: SuppliersPublicSerializer},
+    )
+    def retrieve(self, request: Request, pk: UUID) -> Response:
+        supplier = self.service.get_supplier_by_id_or_404(pk)
+        serializer = self.get_serializer(supplier)
         return Response(serializer.data)
 
-    @swagger_auto_schema(request_body=SuppliersUpdateSerializer, responses={204: "No Content"})
-    def patch(self, request: Request, id: UUID) -> Response:
+    @swagger_auto_schema(
+        tags=["Suppliers"],
+        request_body=SuppliersUpdateSerializer,
+        responses={204: "No Content"},
+    )
+    def partial_update(self, request: Request, pk: UUID) -> Response:
         serializer = SuppliersUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.service.update_supplier(id, serializer.validated_data)
+        self.service.update_supplier(pk, serializer.validated_data)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @swagger_auto_schema(responses={204: "No Content"})
-    def delete(self, request: Request, id: UUID) -> Response:
-        self.service.soft_delete_supplier(id)
+    @swagger_auto_schema(
+        tags=["Suppliers"],
+        responses={204: "No Content"},
+    )
+    def destroy(self, request: Request, pk: UUID) -> Response:
+        self.service.soft_delete_supplier(pk)
         return Response(status=status.HTTP_204_NO_CONTENT)
