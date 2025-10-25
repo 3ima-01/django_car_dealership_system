@@ -15,6 +15,7 @@ from apps.autoshows.api.views.autoshows import AutoShowsViewSet
 from apps.autoshows.api.views.autoshows_stock import AutoShowsStockViewSet
 from apps.cars.api.views.cars import CarsViewSet
 from apps.suppliers.api.views.suppliers import SuppliersViewSet
+from apps.suppliers.api.views.suppliers_stock import SuppliersStockViewSet
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -37,6 +38,16 @@ urlpatterns = [
 ]
 
 nested_urls = [
+    path(
+        "suppliers/<uuid:supplier_id>/stock/",
+        SuppliersStockViewSet.as_view({"get": "list", "post": "create"}),
+        name="supplier-stock-list",
+    ),
+    path(
+        "suppliers/<uuid:supplier_id>/stock/<uuid:pk>/",
+        SuppliersStockViewSet.as_view({"patch": "partial_update", "delete": "destroy"}),
+        name="supplier-stock-detail",
+    ),
     path(
         "api/v1/autoshows/<uuid:autoshow_id>/stock/",
         AutoShowsStockViewSet.as_view({"get": "list"}),
