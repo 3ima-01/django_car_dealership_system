@@ -1,4 +1,3 @@
-# apps/suppliers/api/views/suppliers_stock.py
 from typing import Any
 from uuid import UUID
 
