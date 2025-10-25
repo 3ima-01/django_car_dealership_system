@@ -31,7 +31,6 @@ class SuppliersStockViewSet(
     DestroyModelMixin,
     GenericViewSet,
 ):
-    swagger_tags = ["Suppliers"]  # ← Группируем под тегом "Suppliers"
     permission_classes = [AllowAny]
     serializer_class = SuppliersStockPublicSerializer
 
