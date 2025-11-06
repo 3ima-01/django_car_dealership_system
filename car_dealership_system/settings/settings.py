@@ -129,3 +129,17 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=config.jwt.ACCESS_TOKEN_LIFETIME),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=config.jwt.REFRESH_TOKEN_LIFETIME),
 }
+
+# --- Swagger ---
+
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "Enter the token in the format: Bearer <your_access_token>",
+        }
+    },
+    "USE_SESSION_AUTH": False,
+}

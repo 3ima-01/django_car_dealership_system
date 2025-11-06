@@ -10,7 +10,7 @@ from apps.common.models import AbstractBaseModel
 class CustomerManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("Email обязателен")
+            raise ValueError("Email requered")
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)

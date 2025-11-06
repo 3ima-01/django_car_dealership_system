@@ -17,6 +17,9 @@ class JWT(Base):
     ACCESS_TOKEN_LIFETIME: int
     REFRESH_TOKEN_LIFETIME: int
 
+    EMAIL_VERIFY_TOKEN_LIFETIME: int
+    ACTION_TOKEN_LIFETIME: int
+
 
 class DataBase(Base):
     DB_HOST: str
@@ -38,10 +41,10 @@ class Redis(Base):
 
 
 class Config(Base):
-    django: Django = Django()
-    jwt: JWT = JWT()
-    database: DataBase = DataBase()
-    redis: Redis = Redis()
+    django: Django = Django()  # type: ignore
+    jwt: JWT = JWT()  # type: ignore
+    database: DataBase = DataBase()  # type: ignore
+    redis: Redis = Redis()  # type: ignore
 
 
 config = Config()
