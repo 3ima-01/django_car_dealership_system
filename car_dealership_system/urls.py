@@ -11,10 +11,20 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
+# Accounts
 from apps.accounts.api.views.accounts import AccountsViewSet
+
+# AutoShows
 from apps.autoshows.api.views.autoshows import AutoShowsViewSet
 from apps.autoshows.api.views.autoshows_stock import AutoShowsStockViewSet
+
+# Cars
 from apps.cars.api.views.cars import CarsViewSet
+
+# Customers
+from apps.customers.api.views.offers import OffersViewSet
+
+# Suppliers
 from apps.suppliers.api.views.suppliers import SuppliersViewSet
 from apps.suppliers.api.views.suppliers_stock import SuppliersStockViewSet
 
@@ -30,6 +40,7 @@ schema_view = get_schema_view(
 router = SimpleRouter()
 router.register(r"cars", CarsViewSet, basename="cars")
 router.register(r"accounts", AccountsViewSet, basename="accounts")
+router.register(r"offers", OffersViewSet, basename="offers")
 router.register(r"suppliers", SuppliersViewSet, basename="suppliers")
 router.register(r"autoshows", AutoShowsViewSet, basename="autoshows")
 

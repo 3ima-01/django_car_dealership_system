@@ -14,20 +14,17 @@ class BaseRepository(Generic[ModelType]):
         """Get all active data (is_active=True)"""
         return self.model._default_manager.filter(is_active=True)
 
+    def get_by_filter(self, **kwargs):
+        """Get all data by filter"""
+        return self.model._default_manager.filter(**kwargs)
+
+    def get_by_filter_or_404(self, **kwargs):
+        """Get all data by filter, return 404 if doesn`t exist (for DRF)"""
+        return get_object_or_404(self.model, **kwargs)
+
     def get_all_with_inactive(self) -> models.QuerySet[ModelType]:
         """Get all data including inactive ones"""
         return self.model._default_manager.all()
-
-    def get_by_id(self, id: UUID) -> ModelType | None:
-        """Get data by ID, return None If doesn`t exist"""
-        try:
-            return self.model._default_manager.get(pk=id, is_active=True)
-        except self.model.DoesNotExist:  # type: ignore[attr-defined]
-            return None
-
-    def get_by_id_or_404(self, id: UUID) -> ModelType:
-        """Get data by ID, return 404 if doesn`t exist (for DRF)"""
-        return get_object_or_404(self.model, pk=id, is_active=True)
 
     def create(self, data: dict[str, Any]):
         """Create new data"""

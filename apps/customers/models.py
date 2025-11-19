@@ -5,11 +5,14 @@ from django.db import models
 
 
 class Profiles(models.Model):
-    customer_id = models.OneToOneField("accounts.Customers", on_delete=models.CASCADE, related_name="profile")
+    customer = models.OneToOneField("accounts.Customers", related_name="profile", on_delete=models.CASCADE)
     first_name = models.CharField(max_length=128)
     last_name = models.CharField(max_length=128)
     phone = models.CharField(max_length=17)
     balance = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)], default=0)
+    reserved_balance = models.DecimalField(
+        max_digits=12, decimal_places=2, validators=[MinValueValidator(0)], default=0
+    )
 
 
 class Offers(models.Model):
@@ -20,7 +23,7 @@ class Offers(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    customer_id = models.ForeignKey("accounts.Customers", on_delete=models.CASCADE)
+    customer = models.ForeignKey("accounts.Customers", related_name="offers", on_delete=models.CASCADE)
     model = models.CharField(max_length=64)
     max_price = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
-    status = models.CharField(max_length=32, choices=STATUSES)
+    status = models.CharField(max_length=32, choices=STATUSES, default="ACTIVE")

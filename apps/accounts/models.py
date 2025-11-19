@@ -19,7 +19,7 @@ class CustomerManager(BaseUserManager):
         with transaction.atomic():
             customer.save(using=self._db)
             Profiles.objects.get_or_create(
-                customer_id=customer,
+                customer=customer,
                 first_name=first_name,
                 last_name=last_name,
             )
