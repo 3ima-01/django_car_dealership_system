@@ -5,7 +5,7 @@ from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import SimpleRouter
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -27,7 +27,7 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
-router = DefaultRouter()
+router = SimpleRouter()
 router.register(r"cars", CarsViewSet, basename="cars")
 router.register(r"accounts", AccountsViewSet, basename="accounts")
 router.register(r"suppliers", SuppliersViewSet, basename="suppliers")
@@ -35,7 +35,6 @@ router.register(r"autoshows", AutoShowsViewSet, basename="autoshows")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/v1/", include("rest_framework.urls", namespace="rest_framework")),
     path("api/v1/", include(router.urls)),
 ]
 
