@@ -12,8 +12,13 @@ class AccountsService:
     def __init__(self):
         self.repository = AccountsRepository()
 
-    def register(self, email: str, password: str) -> dict[str, str]:
-        customer = Customers.objects.create_user(email=email, password=password)
+    def register(self, email: str, password: str, first_name: str, last_name: str) -> dict[str, str]:
+        customer = Customers.objects.create_user(
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+        )
         token = EmailVerificationToken.for_user(str(customer.id))
         send_verify_email.delay(email, str(token))
         return {"detail": "User successfully register, please verify your email address"}

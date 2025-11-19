@@ -4,9 +4,12 @@ from apps.accounts.models import Customers
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+
     class Meta:
         model = Customers
-        fields = ["email", "password"]
+        fields = ["email", "password", "first_name", "last_name"]
 
 
 class ChangePasswordSerializer(serializers.Serializer):
