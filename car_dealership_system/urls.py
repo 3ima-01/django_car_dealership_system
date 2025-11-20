@@ -23,6 +23,7 @@ from apps.cars.api.views.cars import CarsViewSet
 
 # Customers
 from apps.customers.api.views.offers import OffersViewSet
+from apps.customers.api.views.profiles import ProfileViewSet
 
 # Suppliers
 from apps.suppliers.api.views.suppliers import SuppliersViewSet
@@ -40,7 +41,9 @@ schema_view = get_schema_view(
 router = SimpleRouter()
 router.register(r"cars", CarsViewSet, basename="cars")
 router.register(r"accounts", AccountsViewSet, basename="accounts")
+# Customers
 router.register(r"offers", OffersViewSet, basename="offers")
+router.register(r"profiles", ProfileViewSet, basename="profiles")
 router.register(r"suppliers", SuppliersViewSet, basename="suppliers")
 router.register(r"autoshows", AutoShowsViewSet, basename="autoshows")
 

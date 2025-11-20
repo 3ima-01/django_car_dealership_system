@@ -1,7 +1,5 @@
 from uuid import UUID
 
-from django.db import transaction
-from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import action
@@ -73,7 +71,7 @@ class OffersViewSet(
         responses={200: OfferSerializer},
     )
     def retrieve(self, request: Request, pk: UUID) -> Response:
-        offer = self.service.get_offer_by_id_or_404(pk)
+        offer = self.service.get_or_404(id=pk)
         serializer = self.get_serializer(offer)
         return Response(serializer.data)
 
@@ -81,7 +79,6 @@ class OffersViewSet(
         tags=["Offers"],
         responses={200: "Order successfully cancelled"},
     )
-    @transaction.atomic
     @action(detail=True, methods=["post"], url_path="cancel", serializer_class=None)
     def cancel(self, request, pk: UUID):
         response = self.service.cancel_offer(

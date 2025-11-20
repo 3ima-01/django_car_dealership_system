@@ -1,7 +1,8 @@
 from decimal import Decimal
 from uuid import UUID
 
-from django.db import models
+from django.db import models, transaction
+from django.shortcuts import get_object_or_404
 
 from apps.accounts.models import Customers
 from apps.customers.api.exceptions.offers import (
@@ -10,12 +11,11 @@ from apps.customers.api.exceptions.offers import (
     InvalidOfferStateForCancellationException,
 )
 from apps.customers.models import Offers, Profiles
-from apps.customers.repositories.offers import OffersRepository
 
 
 class OffersService:
     def __init__(self):
-        self.repository = OffersRepository()
+        self.model = Offers
 
     def _release_reservation(self, customer: Customers, amount: Decimal):
         """Releases the reserved amount"""
@@ -30,7 +30,7 @@ class OffersService:
             raise InsufficientFundsException("Insufficient reserved balance for refund")
 
     def my_offers(self, customer_id: UUID):
-        return self.repository.get_by_filter(customer_id=customer_id)
+        return self.model.objects.filter(customer_id=customer_id)
 
     def create_offer(
         self,
@@ -57,24 +57,24 @@ class OffersService:
                 available = Decimal("0.00")
             raise InsufficientFundsException(f"Insufficient balance. Available: {available}")
 
-        self.repository.create(
+        self.model.objects.create(
             customer=customer,
             model=model,
             max_price=max_price,
         )
-
         return "Order successfully created"
 
     def cancel_offer(self, offer_id: UUID, customer: Customers):
-        offer = Offers.objects.select_for_update().get(id=offer_id, customer=customer)
-        if offer.status != "ACTIVE":
-            raise InvalidOfferStateForCancellationException
+        with transaction.atomic():
+            offer = Offers.objects.select_for_update().get(id=offer_id, customer=customer)
+            if offer.status != "ACTIVE":
+                raise InvalidOfferStateForCancellationException
 
-        self._release_reservation(customer, offer.max_price)
+            self._release_reservation(customer, offer.max_price)
 
-        offer.status = "CANCELED"
-        offer.save(update_fields=["status"])
-        return "Order successfully cancelled"
+            offer.status = "CANCELED"
+            offer.save(update_fields=["status"])
+            return "Order successfully cancelled"
 
-    def get_offer_by_id_or_404(self, id: UUID):
-        return self.repository.get_by_filter_or_404(id=id)
+    def get_or_404(self, **kwargs):
+        return get_object_or_404(self.model, **kwargs)
