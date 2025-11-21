@@ -2,15 +2,17 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-load_dotenv()
+from car_dealership_system.settings.config import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.getenv("SECRET_KEY")
-DEBUG = os.getenv("DEBUG")
+SECRET_KEY = config.django.SECRET_KEY
+DEBUG = config.django.DEBUG
 
-ALLOWED_HOSTS = [*os.getenv("ALLOWED_HOSTS", "").split(",")]
+ALLOWED_HOSTS = config.django.ALLOWED_HOSTS.split(",")
+AUTH_USER_MODEL = "accounts.Customers"
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "noreply@yourdomain.com"
 
 DJANGO_APPS = [
     "django.contrib.admin",
@@ -27,18 +29,19 @@ THIRD_PARTY_APPS = [
     "django_filters",
     "rest_framework",
     "rest_framework_simplejwt",
+    "django_celery_results",
 ]
 
 LOCAL_APPS = [
     "apps.common",
     "apps.cars",
+    "apps.accounts",
     "apps.autoshows",
     "apps.suppliers",
     "apps.customers",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
-
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -57,36 +60,6 @@ MIDDLEWARE = [
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
-
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework_simplejwt.authentication.JWTAuthentication"],
-    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"],
-}
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    "ROTATE_REFRESH_TOKENS": False,
-    "BLACKLIST_AFTER_ROTATION": False,
-    "UPDATE_LAST_LOGIN": False,
-    "ALGORITHM": "HS256",
-    "SIGNING_KEY": SECRET_KEY,
-    "VERIFYING_KEY": "",
-    "AUDIENCE": None,
-    "ISSUER": None,
-    "JSON_ENCODER": None,
-    "JWK_URL": None,
-    "LEEWAY": 0,
-    "AUTH_HEADER_TYPES": ("Bearer",),
-    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
-    "USER_ID_FIELD": "id",
-    "USER_ID_CLAIM": "user_id",
-    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
-    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
-    "TOKEN_TYPE_CLAIM": "token_type",
-    "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
-    "JTI_CLAIM": "jti",
-}
 
 ROOT_URLCONF = "car_dealership_system.urls"
 
@@ -110,11 +83,11 @@ WSGI_APPLICATION = "car_dealership_system.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASS"),
-        "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT"),
+        "NAME": config.database.DB_NAME,
+        "USER": config.database.DB_USER,
+        "PASSWORD": config.database.DB_PASS,
+        "HOST": config.database.DB_HOST,
+        "PORT": config.database.DB_PORT,
     }
 }
 
@@ -140,3 +113,33 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# --- DRF ---
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework_simplejwt.authentication.JWTAuthentication"],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"],
+}
+
+# --- JWT ---
+
+SIMPLE_JWT = {
+    "SIGNING_KEY": config.jwt.SIGNING_KEY,
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=config.jwt.ACCESS_TOKEN_LIFETIME),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=config.jwt.REFRESH_TOKEN_LIFETIME),
+}
+
+# --- Swagger ---
+
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "Enter the token in the format: Bearer <your_access_token>",
+        }
+    },
+    "USE_SESSION_AUTH": False,
+}
