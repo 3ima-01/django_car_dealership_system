@@ -7,7 +7,6 @@ from apps.cars.models import Cars
 from apps.common.models import AbstractBaseModel
 
 
-# Create your models here.
 class Suppliers(AbstractBaseModel):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     title = models.CharField(max_length=128)
@@ -16,11 +15,15 @@ class Suppliers(AbstractBaseModel):
     city = models.CharField(max_length=128)
 
 
-class SuppliersStock(models.Model):
+class SuppliersStock(AbstractBaseModel):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     car_id = models.ForeignKey(Cars, on_delete=models.CASCADE)
-    suppliers_id = models.ForeignKey(Suppliers, on_delete=models.CASCADE)
+    supplier_id = models.ForeignKey(Suppliers, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     price = models.FloatField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["car_id", "supplier_id"], name="unique_car_supplier")]
 
 
 class SuppliersPromotions(AbstractBaseModel):
@@ -33,7 +36,7 @@ class SuppliersPromotions(AbstractBaseModel):
     autoshow_id = models.UUIDField(null=True)
 
 
-class SuppliersSales:
+class SuppliersSales(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     supplier_id = models.ForeignKey(Suppliers, on_delete=models.CASCADE)
     autoshow_id = models.ForeignKey(AutoShows, on_delete=models.CASCADE)

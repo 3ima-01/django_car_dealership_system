@@ -14,15 +14,15 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from apps.cars.api.serializers.cars import (
-    CarsCreateSerializer,
-    CarsPublicSerializer,
-    CarsUpdateSerializer,
+from apps.suppliers.api.serializers.suppliers import (
+    SuppliersCreateSerializer,
+    SuppliersPublicSerializer,
+    SuppliersUpdateSerializer,
 )
-from apps.cars.services.cars import CarsService
+from apps.suppliers.services.suppliers import SuppliersService
 
 
-class CarsViewSet(
+class SuppliersViewSet(
     ListModelMixin,
     CreateModelMixin,
     RetrieveModelMixin,
@@ -30,62 +30,62 @@ class CarsViewSet(
     GenericViewSet,
 ):
     permission_classes = [AllowAny]
-    serializer_class = CarsPublicSerializer
+    serializer_class = SuppliersPublicSerializer
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
-        self.service = CarsService()
+        self.service = SuppliersService()
 
     def get_queryset(self):
-        from apps.cars.models import Cars
+        from apps.suppliers.models import Suppliers
 
-        return Cars.objects.none()
+        return Suppliers.objects.none()
 
     @swagger_auto_schema(
-        tags=["Cars"],
-        responses={200: CarsPublicSerializer(many=True)},
+        tags=["Suppliers"],
+        responses={200: SuppliersPublicSerializer(many=True)},
     )
     def list(self, request: Request) -> Response:
-        cars = self.service.get_all_cars()
-        serializer = self.get_serializer(cars, many=True)
+        suppliers = self.service.get_all_suppliers()
+        serializer = self.get_serializer(suppliers, many=True)
         return Response(serializer.data)
 
     @swagger_auto_schema(
-        tags=["Cars"],
-        request_body=CarsCreateSerializer,
-        responses={201: CarsPublicSerializer},
+        tags=["Suppliers"],
+        request_body=SuppliersCreateSerializer,
+        responses={201: SuppliersPublicSerializer},
     )
     def create(self, request: Request) -> Response:
-        serializer = CarsCreateSerializer(data=request.data)
+        serializer = SuppliersCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        car = self.service.create_car(serializer.validated_data)
-        response_serializer = CarsPublicSerializer(car)
+        supplier = self.service.create_supplier(serializer.validated_data)
+        response_serializer = SuppliersPublicSerializer(supplier)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(
-        tags=["Cars"],
-        responses={200: CarsPublicSerializer},
+        tags=["Suppliers"],
+        responses={200: SuppliersPublicSerializer},
     )
     def retrieve(self, request: Request, pk: UUID) -> Response:
-        car = self.service.get_car_by_id_or_404(pk)
-        serializer = self.get_serializer(car)
+        supplier = self.service.get_supplier_by_id_or_404(pk)
+        serializer = self.get_serializer(supplier)
         return Response(serializer.data)
 
     @swagger_auto_schema(
-        tags=["Cars"],
-        request_body=CarsUpdateSerializer,
+        tags=["Suppliers"],
+        request_body=SuppliersUpdateSerializer,
         responses={204: "No Content"},
     )
     def partial_update(self, request: Request, pk: UUID) -> Response:
-        serializer = CarsUpdateSerializer(data=request.data)
+        serializer = SuppliersUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.service.update_car(pk, serializer.validated_data)
+        self.service.update_supplier(pk, serializer.validated_data)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @swagger_auto_schema(
-        tags=["Cars"],
+        tags=["Suppliers"],
         responses={204: "No Content"},
     )
     def destroy(self, request: Request, pk: UUID) -> Response:
-        self.service.soft_delete_car(pk)
+        self.service.soft_delete_supplier(pk)
         return Response(status=status.HTTP_204_NO_CONTENT)

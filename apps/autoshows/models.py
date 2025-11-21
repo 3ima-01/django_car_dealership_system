@@ -5,7 +5,6 @@ from django.db import models
 
 from apps.cars.models import Cars
 from apps.common.models import AbstractBaseModel
-from apps.customers.models import Customers
 
 
 class AutoShows(AbstractBaseModel):
@@ -16,7 +15,8 @@ class AutoShows(AbstractBaseModel):
     car_preferences = models.JSONField(null=True, default=dict)
 
 
-class AutoShowsStock(models.Model):
+class AutoShowsStock(AbstractBaseModel):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     car_id = models.ForeignKey(Cars, on_delete=models.CASCADE)
     autoshow_id = models.ForeignKey(AutoShows, on_delete=models.CASCADE)
     quantity = models.IntegerField(validators=[MinValueValidator(0)])
@@ -39,7 +39,7 @@ class AutoShowsPromotions(AbstractBaseModel):
 class AutoShowsSales(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     autoshow_id = models.ForeignKey(AutoShows, on_delete=models.CASCADE)
-    customer_id = models.ForeignKey(Customers, on_delete=models.CASCADE)
+    customer_id = models.ForeignKey("accounts.Customers", on_delete=models.CASCADE)
     car_id = models.ForeignKey(AutoShowsStock, on_delete=models.CASCADE)
     promotion_id = models.ForeignKey(AutoShowsPromotions, on_delete=models.CASCADE)
     date = models.DateField()
