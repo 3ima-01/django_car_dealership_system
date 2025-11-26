@@ -17,8 +17,8 @@ class Suppliers(AbstractBaseModel):
 
 class SuppliersStock(AbstractBaseModel):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    car_id = models.ForeignKey(Cars, on_delete=models.CASCADE)
-    supplier_id = models.ForeignKey(Suppliers, on_delete=models.CASCADE)
+    car = models.ForeignKey(Cars, on_delete=models.CASCADE)
+    supplier = models.ForeignKey(Suppliers, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     price = models.FloatField()
 
@@ -32,15 +32,15 @@ class SuppliersPromotions(AbstractBaseModel):
     start_at = models.DateTimeField()
     end_at = models.DateTimeField()
     percent = models.IntegerField()
-    cars_id = models.ForeignKey(SuppliersStock, on_delete=models.CASCADE)
-    autoshow_id = models.UUIDField(null=True)
+    cars = models.ForeignKey(SuppliersStock, on_delete=models.CASCADE)
+    autoshow = models.ForeignKey(AutoShows, on_delete=models.CASCADE)
 
 
 class SuppliersSales(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    supplier_id = models.ForeignKey(Suppliers, on_delete=models.CASCADE)
-    autoshow_id = models.ForeignKey(AutoShows, on_delete=models.CASCADE)
-    car_id = models.ForeignKey(SuppliersStock, on_delete=models.CASCADE)
-    promotion_id = models.ForeignKey(SuppliersPromotions, on_delete=models.CASCADE)
+    supplier = models.ForeignKey(Suppliers, on_delete=models.CASCADE)
+    autoshow = models.ForeignKey(AutoShows, on_delete=models.CASCADE)
+    car = models.ForeignKey(SuppliersStock, on_delete=models.CASCADE)
+    promotion = models.ForeignKey(SuppliersPromotions, on_delete=models.CASCADE)
     date = models.DateField()
     total_price = models.FloatField()
