@@ -44,38 +44,6 @@ class AutoShowsService:
     def soft_delete(self, auto_show_id: UUID):
         return self.model.objects.filter(id=auto_show_id).update(is_active="False")
 
-    def buy_car_from_supplier(self, stock_id: UUID, autoshow_id: UUID, customer_price: Decimal):
-        with transaction.atomic():
-            autoshow = self.model.objects.select_for_update().get(id=autoshow_id)
-            supplier_stock = SuppliersStock.objects.select_for_update().get(id=stock_id)
-
-            autoshows_markup_price = supplier_stock.price * (1 + autoshow.markup_percent / Decimal("100"))
-
-            if customer_price >= autoshows_markup_price:
-                if autoshow.balance >= supplier_stock.price and supplier_stock.quantity > 0:
-                    supplier_stock.quantity -= 1
-                    supplier_stock.save(update_fields=["quantity"])
-                    SuppliersSales.objects.create(
-                        supplier=supplier_stock.supplier,
-                        autoshow=autoshow,
-                        car=supplier_stock.car,
-                        promotion=None,
-                        total_price=supplier_stock.price,
-                    )
-                    autoshow.balance -= supplier_stock.price
-                    autoshow.save(update_fields=["balance"])
-
-                    autoshows_stock, created = AutoShowsStock.objects.get_or_create(
-                        car=supplier_stock.car,
-                        autoshow=autoshow,
-                        defaults={"quantity": 1, "price": autoshows_markup_price},
-                    )
-
-                    if not created:
-                        autoshows_stock.quantity = F("quantity") + 1
-                        autoshows_stock.price = autoshows_markup_price
-                        autoshows_stock.save(update_fields=["quantity", "price"])
-
     @transaction.atomic()
     def _buy_for_autoshow(self, autoshow: AutoShows, demand):
         # 1. Load autoshow with lock
@@ -93,37 +61,31 @@ class AutoShowsService:
             .order_by("price", "id")
         )
 
-        # 5. Покупаем ПО ОДНОЙ машине на car_id (чтобы не завалить склад одной моделью)
-        #    Можно изменить логику — например, брать N штук, если офферов много.
+        # 3. Buy car one at the time
         purchased_car_ids = set()
         purchases = []
 
         for stock in suitable_stocks:
             if stock.car_id in purchased_car_ids:
-                continue  # уже купили эту модель для этого автосалона
+                continue  # Already bought this model for this autoshow
 
-            # ✔️ Все проверки прошли — покупаем
             purchases.append((stock, stock.autoshow_sell_price))
             purchased_car_ids.add(stock.car_id)
-
-            # Ограничим, например, 5 машин за раз (чтобы не зависала транзакция)
-            if len(purchases) >= 5:
-                break
 
         if not purchases:
             return
 
-        # 6. Пакетная обработка покупок
+        # 4. Batch processing of purchases
         stock_ids_to_decr = [stock.id for stock, _ in purchases]
         sales_to_create = []
         autoshow_stock_updates = []
         autoshow_stock_creates = []
 
-        # Обновляем остатки поставщиков — одним запросом
+        # Update supplier quantity with one request
         SuppliersStock.objects.filter(id__in=stock_ids_to_decr).update(quantity=F("quantity") - 1)
 
         for stock, sell_price in purchases:
-            # Продажа от поставщика → автосалону
+            # Sale from supplier to autoshow
             sales_to_create.append(
                 SuppliersSales(
                     supplier=stock.supplier,
@@ -134,11 +96,11 @@ class AutoShowsService:
                 )
             )
 
-            # Обновляем склад автосалона
+            # Updating autoshow_stock
             try:
                 autoshow_stock = AutoShowsStock.objects.select_for_update().get(autoshow=autoshow, car=stock.car)
                 autoshow_stock.quantity = F("quantity") + 1
-                autoshow_stock.price = sell_price  # актуализируем цену
+                autoshow_stock.price = sell_price  # Updating the price
                 autoshow_stock_updates.append(autoshow_stock)
             except AutoShowsStock.DoesNotExist:
                 autoshow_stock_creates.append(
@@ -150,14 +112,14 @@ class AutoShowsService:
                     )
                 )
 
-        # Bulk-операции
+        # Bulk operations
         SuppliersSales.objects.bulk_create(sales_to_create)
         if autoshow_stock_creates:
             AutoShowsStock.objects.bulk_create(autoshow_stock_creates)
         if autoshow_stock_updates:
             AutoShowsStock.objects.bulk_update(autoshow_stock_updates, ["quantity", "price"])
 
-        # Обновляем баланс автосалона
+        # Updating autoshow balance
         total_spent = sum(stock.price for stock, _ in purchases)
         autoshow.balance -= total_spent
         autoshow.save(update_fields=["balance"])
