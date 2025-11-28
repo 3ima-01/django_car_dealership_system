@@ -3,7 +3,8 @@ from rest_framework import serializers
 from apps.autoshows.models import AutoShowsStock
 
 
-class AutoShowsStockPublicSerializer(serializers.ModelSerializer):
+class AutoShowsStockSerializer(serializers.ModelSerializer):
     class Meta:
         model = AutoShowsStock
-        fields = "__all__"
+        fields = ["id", "car", "autoshow", "quantity", "price"]
+        read_only_field = ["id"]
