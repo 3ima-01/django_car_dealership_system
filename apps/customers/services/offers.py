@@ -1,10 +1,12 @@
 from decimal import Decimal
 from uuid import UUID
 
+from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.shortcuts import get_object_or_404
 
 from apps.accounts.models import Customers
+from apps.autoshows.models import AutoShows, AutoShowsSales, AutoShowsStock
 from apps.customers.api.exceptions.offers import (
     InsufficientFundsException,
     InvalidMaxPriceException,
@@ -35,7 +37,7 @@ class OffersService:
     def create_offer(
         self,
         customer: Customers,
-        model: str,
+        car: UUID,
         max_price: Decimal,
     ):
         if max_price <= 0:
@@ -59,7 +61,7 @@ class OffersService:
 
         self.model.objects.create(
             customer=customer,
-            model=model,
+            car=car,
             max_price=max_price,
         )
         return "Order successfully created"
@@ -76,5 +78,62 @@ class OffersService:
             offer.save(update_fields=["status"])
             return "Order successfully cancelled"
 
-    def get_or_404(self, **kwargs):
+    def get_by_filter_or_404(self, **kwargs):
         return get_object_or_404(self.model, **kwargs)
+
+    def buy_car_from_autoshow(self):
+        offers = Offers.objects.filter(status="ACTIVE").select_related("customer", "car")
+
+        for offer in offers:
+            try:
+                with transaction.atomic():
+                    # 1.Find stock with minimum price
+                    stock = (
+                        AutoShowsStock.objects.select_for_update(skip_locked=True)
+                        .filter(car=offer.car, quantity__gt=0, price__lte=offer.max_price)
+                        .order_by("price", "id")
+                        .first()
+                    )
+
+                    if not stock:
+                        continue
+
+                    # 2.Lock related
+                    autoshow = AutoShows.objects.select_for_update().get(id=stock.autoshow_id)
+                    profile = Profiles.objects.select_for_update().get(customer=offer.customer)
+
+                    price = stock.price
+
+                    # 3. Check reserverd_balance
+                    if profile.reserved_balance < price:
+                        raise ValidationError(f"Reserved balance ({profile.reserved_balance}) < price ({price})")
+
+                    # 4. Update Fields
+                    # Stock
+                    stock.quantity -= 1
+                    stock.save(update_fields=["quantity"])
+
+                    # AutoShow
+                    autoshow.balance += price
+                    autoshow.save(update_fields=["balance"])
+
+                    # Profile
+                    unused_reserve = offer.max_price - price
+                    profile.reserved_balance -= price + unused_reserve
+                    profile.balance += unused_reserve
+                    profile.save(update_fields=["reserved_balance", "balance"])
+
+                    # AutoShowsSales
+                    AutoShowsSales.objects.create(
+                        autoshow=autoshow,
+                        customer=offer.customer,
+                        car=offer.car,
+                        total_price=price,
+                    )
+
+                    # Offer
+                    offer.status = "COMPLETED"
+                    offer.save(update_fields=["status"])
+
+            except Exception as exc:
+                print(f"Failed to process offer {offer.id}: {exc}")
