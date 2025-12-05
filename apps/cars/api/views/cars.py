@@ -1,4 +1,3 @@
-from typing import Any
 from uuid import UUID
 
 from drf_yasg.utils import swagger_auto_schema
@@ -19,6 +18,7 @@ from apps.cars.api.serializers.cars import (
     CarsPublicSerializer,
     CarsUpdateSerializer,
 )
+from apps.cars.models import Cars
 from apps.cars.services.cars import CarsService
 
 
@@ -29,17 +29,13 @@ class CarsViewSet(
     DestroyModelMixin,
     GenericViewSet,
 ):
+    queryset = Cars.objects.none()
     permission_classes = [AllowAny]
     serializer_class = CarsPublicSerializer
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.service = CarsService()
-
-    def get_queryset(self):
-        from apps.cars.models import Cars
-
-        return Cars.objects.none()
 
     @swagger_auto_schema(
         tags=["Cars"],

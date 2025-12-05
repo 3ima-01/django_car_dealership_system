@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Self
 
 from rest_framework_simplejwt.tokens import Token
 
@@ -7,7 +8,7 @@ from car_dealership_system.settings.config import config
 
 class BaseToken(Token):
     @classmethod
-    def for_user(cls, id: str) -> Token:
+    def for_user(cls, id: str) -> Self:
         token = cls()
         token["user_id"] = id
         return token

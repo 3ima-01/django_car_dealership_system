@@ -1,9 +1,8 @@
-from uuid import uuid4
-
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models, transaction
 
+from apps.common.fields import IDField
 from apps.common.models import AbstractBaseModel
 from apps.customers.models import Profiles
 
@@ -32,7 +31,7 @@ class CustomerManager(BaseUserManager):
 
 
 class Customers(AbstractBaseUser, PermissionsMixin, AbstractBaseModel):
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    id = IDField()
     email = models.EmailField(max_length=128, unique=True)
 
     is_verified = models.BooleanField(default=False)

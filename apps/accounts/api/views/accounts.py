@@ -1,5 +1,3 @@
-from typing import Any
-
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
@@ -24,7 +22,7 @@ from apps.accounts.services.accounts import AccountsService
 class AccountsViewSet(CreateModelMixin, viewsets.ViewSet):
     permission_classes = [AllowAny]
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.service = AccountsService()
 
