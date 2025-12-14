@@ -8,13 +8,13 @@ from rest_framework.mixins import (
     ListModelMixin,
     RetrieveModelMixin,
 )
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from apps.autoshows.api.serializers.autoshows import AutoShowsSerializer
-from apps.autoshows.models import AutoShows
+from apps.autoshows.models.autoshow import AutoShow
 from apps.autoshows.services.autoshows import AutoShowsService
 
 
@@ -25,20 +25,25 @@ class AutoShowsViewSet(
     DestroyModelMixin,
     GenericViewSet,
 ):
-    queryset = AutoShows.objects.none()
-    permission_classes = [AllowAny]
+    queryset = AutoShow.objects.none()
+    permission_classes = [IsAdminUser]
     serializer_class = AutoShowsSerializer
 
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.service = AutoShowsService()
 
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [AllowAny()]
+        return [IsAdminUser()]
+
     @swagger_auto_schema(
         tags=["AutoShows"],
         responses={200: AutoShowsSerializer(many=True)},
     )
     def list(self, request: Request) -> Response:
-        autoshows = self.service.get_all()
+        autoshows = self.service.get_active()
         serializer = self.get_serializer(autoshows, many=True)
         return Response(serializer.data)
 
@@ -62,24 +67,21 @@ class AutoShowsViewSet(
         responses={200: AutoShowsSerializer},
     )
     def retrieve(self, request: Request, pk: UUID) -> Response:
-        autoshow = self.service.get_by_filter_or_404(id=pk)
+        autoshow = self.service.get_active_or_404(id=pk)
         serializer = self.get_serializer(autoshow)
         return Response(serializer.data)
 
     @swagger_auto_schema(
         tags=["AutoShows"],
         request_body=AutoShowsSerializer,
-        responses={202: AutoShowsSerializer},
+        responses={200: AutoShowsSerializer},
     )
     def partial_update(self, request: Request, pk: UUID) -> Response:
-        serializer = AutoShowsSerializer(data=request.data)
+        serializer = AutoShowsSerializer(partial=True, data=request.data)
         serializer.is_valid(raise_exception=True)
-        autoshow = self.service.update(pk, serializer.validated_data)
+        autoshow = self.service.update(serializer.validated_data, id=pk)
         response_serializer = AutoShowsSerializer(autoshow)
-        return Response(
-            response_serializer.data,
-            status=status.HTTP_202_ACCEPTED,
-        )
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         tags=["AutoShows"],

@@ -6,6 +6,7 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from rest_framework.routers import SimpleRouter
+from rest_framework_nested import routers
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -16,7 +17,8 @@ from apps.accounts.api.views.accounts import AccountsViewSet
 
 # AutoShows
 from apps.autoshows.api.views.autoshows import AutoShowsViewSet
-from apps.autoshows.api.views.autoshows_stock import AutoShowsStockViewSet
+from apps.autoshows.api.views.discount import DiscountViewSet as AutoShowDiscountViewSet
+from apps.autoshows.api.views.stock import AutoShowsStockViewSet
 
 # Cars
 from apps.cars.api.views.cars import CarsViewSet
@@ -24,10 +26,11 @@ from apps.cars.api.views.cars import CarsViewSet
 # Customers
 from apps.customers.api.views.offers import OffersViewSet
 from apps.customers.api.views.profiles import ProfileViewSet
+from apps.suppliers.api.views.discount import DiscountViewSet as SuppliersDiscountViewSet
+from apps.suppliers.api.views.stock import SuppliersStockViewSet
 
 # Suppliers
 from apps.suppliers.api.views.suppliers import SuppliersViewSet
-from apps.suppliers.api.views.suppliers_stock import SuppliersStockViewSet
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -44,36 +47,32 @@ router.register(r"accounts", AccountsViewSet, basename="accounts")
 # Customers
 router.register(r"offers", OffersViewSet, basename="offers")
 router.register(r"profiles", ProfileViewSet, basename="profiles")
+# Suppliers
 router.register(r"suppliers", SuppliersViewSet, basename="suppliers")
+
+suppliers_router = routers.NestedSimpleRouter(router, r"suppliers", lookup="supplier")
+suppliers_router.register(r"stock", SuppliersStockViewSet, basename="supplier-stock")
+suppliers_router.register(r"discount", SuppliersDiscountViewSet, basename="supplier-discount")
+# AutoShows
 router.register(r"autoshows", AutoShowsViewSet, basename="autoshows")
+
+autoshows_router = routers.NestedSimpleRouter(router, r"autoshows", lookup="autoshow")
+autoshows_router.register(r"stock", AutoShowsStockViewSet, basename="autoshow-stock")
+autoshows_router.register(r"discount", AutoShowDiscountViewSet, basename="autoshow-discount")
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # JWT
+    path("api/v1/accounts/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/v1/accounts/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    # ViewSets
     path("api/v1/", include(router.urls)),
-]
-
-nested_urls = [
-    path(
-        "suppliers/<uuid:supplier_id>/stock/",
-        SuppliersStockViewSet.as_view({"get": "list", "post": "create"}),
-        name="supplier-stock-list",
-    ),
-    path(
-        "suppliers/<uuid:supplier_id>/stock/<uuid:pk>/",
-        SuppliersStockViewSet.as_view({"patch": "partial_update", "delete": "destroy"}),
-        name="supplier-stock-detail",
-    ),
-    path(
-        "api/v1/autoshows/<uuid:autoshow_id>/stock/",
-        AutoShowsStockViewSet.as_view({"get": "list"}),
-        name="autoshow-stock-list",
-    ),
-    path("api/v1/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("api/v1/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/v1/", include(suppliers_router.urls)),
+    path("api/v1/", include(autoshows_router.urls)),
+    # Swagger
     path("swagger/", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
 ]
-
-urlpatterns += nested_urls
 
 if settings.DEBUG:
     urlpatterns += debug_toolbar_urls()

@@ -1,10 +1,11 @@
 from rest_framework import serializers
 
-from apps.autoshows.models import AutoShowsStock
+from apps.autoshows.models import Stock
 
 
-class AutoShowsStockSerializer(serializers.ModelSerializer):
+class StockSerializer(serializers.ModelSerializer):
     class Meta:
-        model = AutoShowsStock
+        model = Stock
         fields = ["id", "car", "autoshow", "quantity", "price"]
         read_only_field = ["id"]
+        ref_name = "AutoShowsStock"
