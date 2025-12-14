@@ -16,6 +16,8 @@ class Supplier(AbstractBaseModel):
     country = CountryField()
     city = models.CharField(max_length=128)
 
+    objects = models.Manager()
+
     def __str__(self):
         return f"{self.title} - {self.country} - {self.city}"
 
@@ -35,6 +37,7 @@ class Supplier(AbstractBaseModel):
 
         # 2. calculating price with discount
         price_per_unit = stock.price.amount
+        discounted_price_per_unit = price_per_unit
 
         if discount and discount.is_active:
             discounted_price_per_unit = self.calculate_discounted_price(price_per_unit, discount)

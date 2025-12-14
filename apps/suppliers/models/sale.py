@@ -32,6 +32,8 @@ class Sale(AbstractBaseModel):
     discounted_price_per_unit = MoneyField(help_text="Discounted unit price")
     total_price = MoneyField()
 
+    objects = models.Manager()
+
     class Meta:
         db_table = "suppliers_sales"
         verbose_name = "Sale"

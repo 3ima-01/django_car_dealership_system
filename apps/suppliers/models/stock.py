@@ -19,6 +19,8 @@ class Stock(AbstractBaseModel):
     quantity = models.PositiveIntegerField()
     price = MoneyField()
 
+    objects = models.Manager()
+
     def __str__(self):
         return f"{self.supplier.title} - {self.car.brand}-{self.car.model}({self.quantity}) - {self.price}"
 
