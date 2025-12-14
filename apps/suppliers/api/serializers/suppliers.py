@@ -1,10 +1,10 @@
 from rest_framework import serializers
 
-from apps.suppliers.models import Suppliers
+from apps.suppliers.models.supplier import Supplier
 
 
 class SuppliersSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Suppliers
+        model = Supplier
         fields = ["id", "title", "year", "country", "city"]
         read_only_fields = ["id"]
