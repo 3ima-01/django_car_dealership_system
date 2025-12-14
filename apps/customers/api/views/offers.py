@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from drf_yasg.utils import swagger_auto_schema
+from drf_yasg.utils import no_body, swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -15,6 +15,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from apps.accounts.api.permisions import IsVerified
 from apps.customers.api.serializers.offers import OfferSerializer
+from apps.customers.models import Offers
 from apps.customers.services.offers import OffersService
 
 
@@ -24,17 +25,13 @@ class OffersViewSet(
     RetrieveModelMixin,
     GenericViewSet,
 ):
+    queryset = Offers.objects.none()
     permission_classes = [IsAuthenticated]
-    serializer_class = OfferSerializer
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.service = OffersService()
-
-    def get_queryset(self):
-        from apps.customers.models import Offers
-
-        return Offers.objects.none()
+        self.serializer_class = OfferSerializer
 
     def get_permissions(self):
         permissions = super().get_permissions()
@@ -55,10 +52,7 @@ class OffersViewSet(
         tags=["Offers"],
         responses={201: OfferSerializer},
     )
-    def create(
-        self,
-        request: Request,
-    ):
+    def create(self, request: Request):
         serializer = OfferSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -66,20 +60,18 @@ class OffersViewSet(
         response = self.service.create_offer(**data)
         return Response(response, status=status.HTTP_201_CREATED)
 
-    @swagger_auto_schema(
-        tags=["Offers"],
-        responses={200: OfferSerializer},
-    )
+    @swagger_auto_schema(tags=["Offers"], responses={200: OfferSerializer})
     def retrieve(self, request: Request, pk: UUID) -> Response:
-        offer = self.service.get_or_404(id=pk)
+        offer = self.service.get_by_filter_or_404(id=pk)
         serializer = self.get_serializer(offer)
         return Response(serializer.data)
 
     @swagger_auto_schema(
         tags=["Offers"],
         responses={200: "Order successfully cancelled"},
+        request_body=no_body,
     )
-    @action(detail=True, methods=["post"], url_path="cancel", serializer_class=None)
+    @action(detail=True, methods=["post"], url_path="cancel")
     def cancel(self, request, pk: UUID):
         response = self.service.cancel_offer(
             offer_id=pk,

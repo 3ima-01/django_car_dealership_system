@@ -40,11 +40,17 @@ class Redis(Base):
         return f"redis://{self.REDIS_USER}:{self.REDIS_PASS}@{self.REDIS_HOST}:{self.REDIS_PORT}/0"
 
 
+class CeleryBeat(Base):
+    AUTOSHOW_BUY_CARS_MINUTES: int
+    CUSTOMER_BUY_CAR_MINUTES: int
+
+
 class Config(Base):
     django: Django = Django()  # type: ignore
     jwt: JWT = JWT()  # type: ignore
     database: DataBase = DataBase()  # type: ignore
     redis: Redis = Redis()  # type: ignore
+    celery_beat: CeleryBeat = CeleryBeat()  # type: ignore
 
 
 config = Config()

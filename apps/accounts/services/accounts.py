@@ -3,17 +3,16 @@ from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
 
 from apps.accounts.models import Customers
-from apps.accounts.repositories.accounts import AccountsRepository
 from apps.accounts.tasks import send_change_email, send_reset_password_email, send_verify_email
 from apps.common.utils.jwt import EmailChangeToken, EmailVerificationToken, PasswordResetToken
 
 
 class AccountsService:
     def __init__(self):
-        self.repository = AccountsRepository()
+        self.model = Customers
 
     def register(self, email: str, password: str, first_name: str, last_name: str) -> dict[str, str]:
-        customer = Customers.objects.create_user(
+        customer = self.model.objects.create_user(
             email=email,
             password=password,
             first_name=first_name,
@@ -24,7 +23,7 @@ class AccountsService:
         return {"detail": "User successfully register, please verify your email address"}
 
     def reset_password(self, email: str) -> dict[str, str]:
-        customer = self.repository.get_by_email(email)
+        customer = self.model.objects.get(email=email)
         if customer:
             token = PasswordResetToken.for_user(str(customer.id))
             send_reset_password_email.delay(email, str(token))
@@ -32,7 +31,7 @@ class AccountsService:
 
     def reset_password_confirm(self, token: str, new_password: str) -> dict[str, str]:
         payload = PasswordResetToken(token)
-        customer = self.repository.get_by_id(payload["user_id"])
+        customer = self.model.objects.get(id=payload["user_id"])
         if customer:
             customer.set_password(new_password)
             customer.save(update_fields=["password"])
@@ -60,12 +59,14 @@ class AccountsService:
 
     def change_email_confirm(self, token: str):
         payload = EmailChangeToken(token)
-        customer = self.repository.get_by_id(payload["user_id"])
+        customer = self.model.objects.get(id=payload["user_id"])
         customer.email = payload["new_email"]
         customer.save(update_fields=["email"])
         return {"detail": "Email change successfully"}
 
     def verify_email(self, token: str):
         payload = EmailVerificationToken(token)
-        self.repository.verify_by_id(payload["user_id"])
+        customer = self.model.objects.get(id=payload["user_id"])
+        customer.is_verified = True
+        customer.save(update_fields=["is_verified"])
         return {"detail": "Email successfully verified"}

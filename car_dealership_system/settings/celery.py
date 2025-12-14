@@ -11,7 +11,7 @@ CELERY = {
     "broker_url": config.redis.REDIS_URL,
     "task_always_eager": TESTING,
     "timezone": settings.TIME_ZONE,
-    "result_backend": "django-db",
+    # "result_backend": "django-db",
     "result_extended": True,
     "task_track_started": True,
 }

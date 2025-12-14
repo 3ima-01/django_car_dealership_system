@@ -1,27 +1,10 @@
 from rest_framework import serializers
 
-from apps.autoshows.models import AutoShows
+from apps.autoshows.models import AutoShow
 
 
-class AutoShowsPublicSerializer(serializers.ModelSerializer):
+class AutoShowsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = AutoShows
-        fields = ["id", "title", "location"]
-
-
-class AutoShowsCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AutoShows
-        fields = ["title", "location", "car_preferences"]
-
-
-class AutoShowsUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AutoShows
-        fields = ["title", "location", "car_preferences"]
-
-
-class AutoShowsFullSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AutoShows
-        fields = "__all__"
+        model = AutoShow
+        fields = ["id", "title", "location", "markup_percent", "balance", "car_preferences"]
+        read_only_fields = ["id", "balance"]

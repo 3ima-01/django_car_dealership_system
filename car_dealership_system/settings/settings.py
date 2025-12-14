@@ -27,9 +27,10 @@ THIRD_PARTY_APPS = [
     "debug_toolbar",
     "drf_yasg",
     "django_filters",
+    "django_countries",
+    "djmoney",
     "rest_framework",
     "rest_framework_simplejwt",
-    "django_celery_results",
 ]
 
 LOCAL_APPS = [
@@ -130,7 +131,12 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=config.jwt.REFRESH_TOKEN_LIFETIME),
 }
 
+# --- DJMoney
+MONEY_CURRENCY_CODE = "USD"
+
 # --- Swagger ---
+
+SWAGGER_USE_COMPAT_RENDERERS = False
 
 SWAGGER_SETTINGS = {
     "SECURITY_DEFINITIONS": {
